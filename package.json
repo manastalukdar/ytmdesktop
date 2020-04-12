@@ -13,13 +13,13 @@
     "publish:mac": "build --mac -p always --config electron-builder64.yml",
     "publish:lin": "electron-builder --linux -p always --config electron-builder64.yml"
   },
-  "repository": "https://github.com/adlerluiz/ytmdesktop",
+  "repository": "https://github.com/manastalukdar/ytmdesktop",
   "keywords": [
     "Electron",
     "Youtube",
     "Music"
   ],
-  "author": "Adler Luiz <adlerluiz10@gmail.com>",
+  "author": "",
   "license": "CC0-1.0",
   "husky": {
     "hooks": {
@@ -58,6 +58,9 @@
     "scribble": "0.0.5",
     "socket.io": "^2.3.0",
     "utf-8-validate": "^5.0.2",
-    "ws": "^7.2.1"
+    "ws": "^7.2.1",
+    "@cliqz/adblocker-electron": "^1.14.1",
+    "fetch": "^1.1.0",
+    "cross-fetch": "^3.0.4"
   }
 }
