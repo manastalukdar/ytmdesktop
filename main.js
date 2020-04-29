@@ -38,6 +38,7 @@ const infoPlayer = require("./utils/injectGetInfoPlayer");
 const rainmeterNowPlaying = require("./providers/rainmeterNowPlaying");
 const companionServer = require("./providers/companionServer");
 const discordRPC = require("./providers/discordRpcProvider");
+const mprisProvider = require("./providers/mprisProvider");
 const { checkBounds, doBehavior } = require("./utils/window");
 
 const electronLocalshortcut = require("electron-localshortcut");
@@ -58,6 +59,8 @@ if (settingsProvider.get("settings-rainmeter-web-now-playing")) {
 if (settingsProvider.get("settings-discord-rich-presence")) {
   discordRPC.start();
 }
+
+mprisProvider.start();
 
 let renderer_for_status_bar = null;
 global.sharedObj = { title: "N/A", paused: true };
@@ -324,6 +327,7 @@ function createWindow() {
 
     discordRPC.setActivity(getAll());
     rainmeterNowPlaying.setActivity(getAll());
+    mprisProvider.setActivity(getAll());
 
     mediaControl.createThumbar(
       mainWindow,
