@@ -38,6 +38,7 @@ const infoPlayer = require("./utils/injectGetInfoPlayer");
 const rainmeterNowPlaying = require("./providers/rainmeterNowPlaying");
 const companionServer = require("./providers/companionServer");
 const discordRPC = require("./providers/discordRpcProvider");
+const mprisProvider = require("./providers/mprisProvider");
 const { checkBounds, doBehavior } = require("./utils/window");
 
 const electronLocalshortcut = require("electron-localshortcut");
@@ -58,6 +59,8 @@ if (settingsProvider.get("settings-rainmeter-web-now-playing")) {
 if (settingsProvider.get("settings-discord-rich-presence")) {
   discordRPC.start();
 }
+
+mprisProvider.start();
 
 let renderer_for_status_bar = null;
 global.sharedObj = { title: "N/A", paused: true };
@@ -127,6 +130,7 @@ function createWindow() {
   }
   windowSize = settingsProvider.get("window-size");
   windowMaximized = settingsProvider.get("window-maximized");
+  windowMinimized = settingsProvider.get("settings-start-minimized");
 
   if (windowSize) {
     mainWindowParams.width = windowSize.width;
@@ -145,7 +149,7 @@ function createWindow() {
     height: mainWindowParams.height,
     minWidth: 300,
     minHeight: 300,
-    show: true,
+    show: windowMinimized ? false : true,
     autoHideMenuBar: true,
     backgroundColor: "#232323",
     center: true,
@@ -255,6 +259,11 @@ function createWindow() {
     );
   });
 
+  view.webContents.on("new-window", function(event, url) {
+    event.preventDefault();
+    shell.openExternal(url);
+  });
+
   // view.webContents.openDevTools({ mode: 'detach' });
   view.webContents.on("did-navigate-in-page", function() {
     initialized = true;
@@ -324,6 +333,7 @@ function createWindow() {
 
     discordRPC.setActivity(getAll());
     rainmeterNowPlaying.setActivity(getAll());
+    mprisProvider.setActivity(getAll());
 
     mediaControl.createThumbar(
       mainWindow,
@@ -350,7 +360,9 @@ function createWindow() {
 
       mainWindow.setTitle(nowPlaying);
       tray.setTooltip(nowPlaying);
-      scrobblerProvider.updateTrackInfo(title, author);
+      if (!trackInfo.isAdvertisement) {
+        scrobblerProvider.updateTrackInfo(title, author);
+      }
 
       if (!mainWindow.isFocused()) {
         tray.balloon(title, author, cover);
@@ -838,7 +850,7 @@ function createWindow() {
 
     var template = `%23%23%23%23 Problem %0A%23%23%23%23%23%23 (Describe the problem here) %0A%23%23%23%23 Environment %0A * YTMDesktop: ${ytmdesktop_version} %0A * Platform: ${os_platform} %0A * Arch: ${os_arch} %0A * Version: ${os_system_version} %0A * Node: ${node_version}`;
     shell.openExternal(
-      `https://github.com/ytmdesktop/ytmdesktop/issues/new?title=Issue%20title&body=${template}`
+      `https://github.com/ytmdesktop/ytmdesktop/issues/new?body=${template}`
     );
   });
 
