@@ -2,24 +2,24 @@ require('./utils/defaultSettings')
 const assetsProvider = require('./providers/assetsProvider')
 
 const {
-  app,
-  BrowserWindow,
-  BrowserView,
-  globalShortcut,
-  Menu,
-  ipcMain,
-  systemPreferences,
-  nativeTheme,
-  screen,
-  session
-  shell,
+    app,
+    BrowserWindow,
+    BrowserView,
+    globalShortcut,
+    Menu,
+    ipcMain,
+    systemPreferences,
+    nativeTheme,
+    screen,
+    session,
+    shell,
 } = require('electron')
 const path = require('path')
-const { ElectronBlocker } = require("@cliqz/adblocker-electron");
-const fetch = require("cross-fetch");
+const { ElectronBlocker } = require('@cliqz/adblocker-electron')
+const fetch = require('cross-fetch')
 ElectronBlocker.fromPrebuiltAdsAndTracking(fetch).then(blocker => {
-  blocker.enableBlockingInSession(session.defaultSession);
-});
+    blocker.enableBlockingInSession(session.defaultSession)
+})
 const fs = require('fs')
 const scrobblerProvider = require('./providers/scrobblerProvider')
 const __ = require('./providers/translateProvider')
@@ -38,6 +38,7 @@ const infoPlayer = require('./utils/injectGetInfoPlayer')
 const rainmeterNowPlaying = require('./providers/rainmeterNowPlaying')
 const companionServer = require('./providers/companionServer')
 const discordRPC = require('./providers/discordRpcProvider')
+app.commandLine.appendSwitch('disable-features', 'MediaSessionService') //This keeps chromium from trying to launch up it's own mpris service, hence stopping the double service.
 const mprisProvider = require('./providers/mprisProvider')
 const { checkBounds, doBehavior } = require('./utils/window')
 
@@ -222,7 +223,7 @@ function createWindow() {
 
     // Open the DevTools.
     // mainWindow.webContents.openDevTools({ mode: 'detach' });
-    // view.webContents.openDevTools({ mode: 'detach' });
+    view.webContents.openDevTools({ mode: 'detach' })
 
     mediaControl.createThumbar(
         mainWindow,
@@ -293,10 +294,14 @@ function createWindow() {
             }
         `)
     })
-
+    setInterval(() => {
+        console.log(getAll())
+        // document.querySelector('ytmusic-player-bar')
+    }, 1000)
     view.webContents.on('media-started-playing', function() {
         if (!infoPlayer.hasInitialized()) {
             infoPlayer.init(view)
+            mprisProvider.setRealPlayer(infoPlayer) //this lets us keep track of the current time in playback.
         }
 
         if (isMac()) {
@@ -306,7 +311,10 @@ function createWindow() {
 
         if (infoPlayerInterval === undefined) {
             infoPlayerInterval = setInterval(() => {
-                updateActivity()
+                console.log(global.on_the_road)
+                if (global.on_the_road) {
+                    updateActivity()
+                }
             }, 800)
         }
     })
@@ -315,10 +323,19 @@ function createWindow() {
         loadCustomTheme()
 
         view.webContents.executeJavaScript('window.location').then(location => {
+            console.log(location.hostname)
             if (location.hostname != 'music.youtube.com') {
                 mainWindow.send('off-the-road')
+                console.log(
+                    '================================= n está na página ================================='
+                )
+                global.on_the_road = false
             } else {
                 mainWindow.send('on-the-road')
+                console.log(
+                    '+++++++++++++++++++++++++++++++++ está na página +++++++++++++++++++++++++++++++++'
+                )
+                global.on_the_road = true
             }
         })
     })
