@@ -1,26 +1,36 @@
-const { remote, ipcRenderer } = require("electron");
+const { remote, ipcRenderer } = require('electron')
 
-window.ipcRenderer = ipcRenderer;
-var content = remote.getCurrentWebContents();
+window.ipcRenderer = ipcRenderer
+var content = remote.getCurrentWebContents()
 
-content.addListener("dom-ready", function() {
-  createMenu();
-  createMiddleContent();
-  createRightContent();
-  playerBarScrollToChangeVolume();
-  createPlayerBarContent();
-});
+content.addListener('dom-ready', function() {
+    createContextMenu()
 
-function createMenu() {
-  content.executeJavaScript(`
+    content
+        .executeJavaScript('window.location')
+        .then(location => {
+            if (location.hostname == 'music.youtube.com') {
+                createMiddleContent()
+                createRightContent()
+                playerBarScrollToChangeVolume()
+                createPlayerBarContent()
+            } else {
+                createOffTheRoadContent()
+            }
+        })
+        .catch(_ => ipcRenderer.send('debug', 'error on inject'))
+})
+
+function createContextMenu() {
+    content.executeJavaScript(`
         var materialIcons = document.createElement('link');
         materialIcons.setAttribute('href', 'https://fonts.googleapis.com/icon?family=Material+Icons');
         materialIcons.setAttribute('rel', 'stylesheet');
 
         document.body.prepend(materialIcons);
-    `);
+    `)
 
-  content.insertCSS(`
+    content.insertCSS(`
         #ytmd-menu {
             visibility: hidden;
             opacity: 0;
@@ -83,24 +93,29 @@ function createMenu() {
         .btn-disabled {
             color: #000 !important;
         }
-    `);
 
-  var menu = `<a id="ytmd-menu-lyrics"><i class="material-icons">music_note</i></a> <a id="ytmd-menu-miniplayer"><i class="material-icons">picture_in_picture_alt</i></a> `;
+        .text-red {
+            color: red !important;
+        }
+    `)
 
-  content.executeJavaScript(`
+    var menu = `<a id="ytmd-menu-lyrics"><i class="material-icons">music_note</i></a> <a id="ytmd-menu-miniplayer"><i class="material-icons">picture_in_picture_alt</i></a> <a id="ytmd-menu-bug-report"><i class="material-icons text-red">bug_report</i></a>`
+
+    content.executeJavaScript(`
         var menuDiv = document.createElement("div");
         menuDiv.setAttribute('id', 'ytmd-menu');
         menuDiv.innerHTML = '${menu}';
         document.body.prepend(menuDiv);
-    `);
+    `)
 
-  // LISTENERS FOR MENU OPTIONS
-  content.executeJavaScript(`
+    // LISTENERS FOR MENU OPTIONS
+    content.executeJavaScript(`
         var menuElement = document.getElementById("ytmd-menu").style;
 
         var buttonOpenCompanion = document.getElementById('ytmd-menu-companion-server');
         var buttonOpenMiniplayer = document.getElementById('ytmd-menu-miniplayer');
         var buttonOpenLyrics = document.getElementById('ytmd-menu-lyrics');
+        var buttonOpenBugReport = document.getElementById('ytmd-menu-bug-report');
         var buttonPageOpenMiniplayer = document.getElementsByClassName('player-minimize-button ytmusic-player')[0];
 
         document.addEventListener('contextmenu', function (e) {
@@ -132,16 +147,20 @@ function createMenu() {
             buttonPageOpenMiniplayer.addEventListener('click', function(e) { /* Temporary fix */ document.getElementsByClassName('player-maximize-button ytmusic-player')[0].click(); ipcRenderer.send('show-miniplayer'); } );
         }
         
+        if (buttonOpenBugReport) {
+            buttonOpenBugReport.addEventListener('click', function() { ipcRenderer.send('bug-report'); } );
+        }
+
         function showMenu(x, y) {
             menuElement.top = y + "px";
             menuElement.left = x + "px";
             menuElement.visibility = "visible";
             menuElement.opacity = "1";
-        }`);
+        }`)
 }
 
 function createMiddleContent() {
-  content.executeJavaScript(`
+    content.executeJavaScript(`
         var center_content = document.getElementsByTagName('ytmusic-pivot-bar-renderer')[0];
 
         // HISTORY BACK
@@ -154,12 +173,12 @@ function createMiddleContent() {
         element.addEventListener('click', function() { history.go(-1); } )
         
         center_content.prepend(element);
-    `);
+    `)
 }
 
 function createRightContent() {
-  // ADD BUTTONS TO RIGHT CONTENT (side to the photo)
-  content.executeJavaScript(`
+    // ADD BUTTONS TO RIGHT CONTENT (side to the photo)
+    content.executeJavaScript(`
         var right_content = document.getElementById('right-content');
 
         // SETTINGS
@@ -186,11 +205,11 @@ function createRightContent() {
 
         ipcRenderer.on('downloaded-new-update', function(e, data) {
             document.getElementById("ytmd_update").classList.remove("hide");
-        } );`);
+        } );`)
 }
 
 function createPlayerBarContent() {
-  content.executeJavaScript(`
+    content.executeJavaScript(`
         var playerBarRightControls = document.getElementsByClassName('right-controls-buttons style-scope ytmusic-player-bar')[0];
 
         // LYRICS
@@ -211,11 +230,11 @@ function createPlayerBarContent() {
 
         elementMiniplayer.addEventListener('click', function() { ipcRenderer.send('show-miniplayer', true); } )
         playerBarRightControls.append(elementMiniplayer);
-    `);
+    `)
 }
 
 function playerBarScrollToChangeVolume() {
-  content.executeJavaScript(`
+    content.executeJavaScript(`
         var playerBar = document.getElementsByTagName('ytmusic-player-bar')[0];
 
         playerBar.addEventListener('wheel', function(ev) {
@@ -227,5 +246,24 @@ function playerBarScrollToChangeVolume() {
                 ipcRenderer.send('media-volume-down');
             }
         });
-    `);
+    `)
+}
+
+function createOffTheRoadContent() {
+    content.executeJavaScript(
+        `
+        var body = document.getElementsByTagName('body')[0];
+
+        var elementBack = document.createElement('i');
+        elementBack.id = 'ytmd_lyrics';
+        elementBack.classList.add('material-icons');
+        elementBack.style.cssFloat = "left";
+        elementBack.style.cursor = "pointer";
+        elementBack.innerText = 'arrow_back';
+
+        elementBack.addEventListener('click', function() { ipcRenderer.send('reset-url') } )
+        
+        body.prepend(elementBack);
+        `
+    )
 }
