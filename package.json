@@ -34,7 +34,6 @@
     },
     "dependencies": {
         "ace-builds": "^1.4.8",
-        "base64-img": "^1.0.4",
         "bufferutil": "^4.0.1",
         "discord-rpc": "^3.1.0",
         "electron-canvas-to-buffer": "^2.0.0",
@@ -46,9 +45,9 @@
         "electron-store": "^5.1.0",
         "electron-updater": "^4.2.0",
         "i18n": "^0.8.5",
+        "image-to-base64": "^2.1.0",
         "js-base64": "^2.5.1",
         "materialize-css": "^1.0.0",
-        "mpris-service": "^2.1.0",
         "node-vibrant": "^3.1.5",
         "npx": "^10.2.2",
         "prettier": "^1.19.1",
@@ -62,5 +61,9 @@
         "@cliqz/adblocker-electron": "^1.14.1",
         "fetch": "^1.1.0",
         "cross-fetch": "^3.0.4"
+    },
+    "optionalDependencies": {
+        "@nodert-win10/windows.media.playback": "^0.2.96",
+        "mpris-service": "^2.1.0"
     }
 }

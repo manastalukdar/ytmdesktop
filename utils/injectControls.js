@@ -4,21 +4,24 @@ window.ipcRenderer = ipcRenderer
 var content = remote.getCurrentWebContents()
 
 content.addListener('dom-ready', function() {
-    content.executeJavaScript('window.location').then(location => {
-        if (location.hostname != 'music.youtube.com') {
-            // Show menu off the road;
-        } else {
-            createMiddleContent()
-            createRightContent()
-            playerBarScrollToChangeVolume()
-            createPlayerBarContent()
-        }
+    createContextMenu()
 
-        createMenu()
-    })
+    content
+        .executeJavaScript('window.location')
+        .then(location => {
+            if (location.hostname == 'music.youtube.com') {
+                createMiddleContent()
+                createRightContent()
+                playerBarScrollToChangeVolume()
+                createPlayerBarContent()
+            } else {
+                createOffTheRoadContent()
+            }
+        })
+        .catch(_ => ipcRenderer.send('debug', 'error on inject'))
 })
 
-function createMenu() {
+function createContextMenu() {
     content.executeJavaScript(`
         var materialIcons = document.createElement('link');
         materialIcons.setAttribute('href', 'https://fonts.googleapis.com/icon?family=Material+Icons');
@@ -244,4 +247,23 @@ function playerBarScrollToChangeVolume() {
             }
         });
     `)
+}
+
+function createOffTheRoadContent() {
+    content.executeJavaScript(
+        `
+        var body = document.getElementsByTagName('body')[0];
+
+        var elementBack = document.createElement('i');
+        elementBack.id = 'ytmd_lyrics';
+        elementBack.classList.add('material-icons');
+        elementBack.style.cssFloat = "left";
+        elementBack.style.cursor = "pointer";
+        elementBack.innerText = 'arrow_back';
+
+        elementBack.addEventListener('click', function() { ipcRenderer.send('reset-url') } )
+        
+        body.prepend(elementBack);
+        `
+    )
 }
