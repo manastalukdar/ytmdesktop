@@ -54,7 +54,7 @@
         "register-scheme": "0.0.2",
         "scribble": "0.0.5",
         "socket.io": "^2.3.0",
-        "ws": "^7.3.0"
+        "ws": "^7.3.0",
         "@cliqz/adblocker-electron": "^1.14.1",
         "fetch": "^1.1.0",
         "cross-fetch": "^3.0.4"
