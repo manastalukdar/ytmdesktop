@@ -38,7 +38,7 @@ let init_tray = () => {
 let popUpMenu = null
 
 function createTray(mainWindow, icon) {
-    let nativeImageIcon = nativeImage.createFromPath(icon)
+    nativeImageIcon = buildTrayIcon(icon)
     tray = new Tray(nativeImageIcon)
 
     saved_mainWindow = mainWindow
@@ -51,6 +51,11 @@ function createTray(mainWindow, icon) {
 }
 
 function updateTrayIcon(icon) {
+    nativeImageIcon = buildTrayIcon(icon)
+    tray.setImage(nativeImageIcon)
+}
+
+function buildTrayIcon(icon) {
     let nativeImageIcon = nativeImage.createFromPath(icon)
     if (systemInfo.isMac()) {
         nativeImageIcon = nativeImageIcon.resize({
@@ -59,7 +64,7 @@ function updateTrayIcon(icon) {
             quality: 'best',
         })
     }
-    tray.setImage(nativeImageIcon)
+    return nativeImageIcon
 }
 
 function balloon(title, content, cover, icon) {
@@ -160,7 +165,6 @@ function setShinyTray() {
         })
     } else {
         // Shiny tray disabled ||| on onther platform
-        tray.setImage(saved_icon)
         tray.removeAllListeners()
         init_tray()
     }
