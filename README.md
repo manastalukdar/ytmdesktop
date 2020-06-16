@@ -1,5 +1,7 @@
 # YouTube Music Desktop App with adblocker
 
+**NOTE**: I am not actively maintaining this project any more. I have moved on to using the YouTube Music PWA.
+
 [A fork of [ytmdesktop](https://github.com/ytmdesktop/ytmdesktop) with [adblocker](https://github.com/cliqz-oss/adblocker).]
 
 <img alt="window" src="https://ytmdesktop.app/img/product/main_3.png" width="500px">
